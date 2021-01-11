@@ -1,0 +1,11 @@
+runtime: python37
+
+env_variables:
+    SENDGRID_API_KEY: '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'
+    SENDGRID_SENDER: 'sendout@teko.vn'
+    PROJECT_ID: 'loyalty-272605'
+    LOCATION: 'us-central1'
+    QUEUE: 'my-appengine-queue'
+    BUCKET: 'testsendout'
+    REQUEST_FOLDER: 'requests'
+    PUBLIC_FOLDER: 'sendout'

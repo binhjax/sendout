@@ -1,0 +1,106 @@
+version: '3.6'
+services:
+  db:
+    image: mysql:5.7
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: '123456'
+      MYSQL_DATABASE: 'keycloak'
+      MYSQL_PASSWORD: '123456'
+    ports:
+      - 3307:3306
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+
+  keycloak:
+    image: jboss/keycloak
+    ports:
+      - "8080:8080"
+    command: -Dkeycloak.profile.feature.upload_scripts=enabled
+    environment:
+        # KEYCLOAK_USER: admin
+        # KEYCLOAK_PASSWORD: admin
+        DB_VENDOR: mysql
+        DB_USER: keycloak
+        DB_PASSWORD: '123456'
+        DB_ADDR: db
+        DB_DATABASE: keycloak
+  # redis:
+  #   image: redis
+
+  rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: SuperSecr3t
+    ports:
+        - 25672:15672
+        # - 5672:5672
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq
+
+  api:
+    build: ./src
+    image: schema_server
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./src:/app
+      # - ./gunicorn:/gunicorn
+    # command: python3 manage.py runserver -h 0.0.0.0 -p 5000
+    command: gunicorn -c /app/gunicorn/config.py www:app --error-logfile /app/gunicorn/log_error.log  --access-logfile  /app/gunicorn/log_access.log
+    depends_on:
+      - db
+  flower:
+    build: ./backend
+    image: schema_server
+    ports:
+      - "5555:5555"
+    volumes:
+      - ./backend:/app
+      # - ./gunicorn:/gunicorn
+    command: flower --port=5555
+    depends_on:
+      - db
+
+  celery:
+    build: ./backend
+    image: schema_server
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - rabbitmq
+    command: celery worker -A www:celery --loglevel=INFO  -c 40
+
+  neo4j:
+    image: neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - ./data/neo4j:/data
+
+  # celery-beat:
+  #     image: send_outsite_server
+  #     volumes:
+  #       - ./backend:/app
+  #     depends_on:
+  #       - redis
+  #     command: celery beat -A www:celery --loglevel=INFO
+
+  storage:
+    image: minio/minio:edge
+    ports:
+      - "9000:9000"
+    # command: server /data
+    command:  gateway gcs loyalty-272605
+    environment:
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=minio123
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+      # - MINIO_ACCESS_KEY_OLD=minioadmin
+      # - MINIO_SECRET_KEY_OLD=minioadmin
+    volumes:
+      - ./data/minio:/data
+      - ./gapp/credentials.json:/app/credentials.json

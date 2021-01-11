@@ -1,0 +1,15 @@
+*.pyc
+*.sqlite3
+*.json
+**/migrations/
+.env
+postgresql/data/*
+elasticsearch/
+.venv/
+postgresql/data
+postgresql/data/
+./backend/*.json
+./backend/src/.env
+./gapp/*.json 
+./backend/data/*
+backend/data/*

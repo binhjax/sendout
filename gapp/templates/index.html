@@ -1,0 +1,16 @@
+<html>
+<head>
+  <title>Datastore and Firebase Auth Example</title>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <h1>Datastore and Firebase Auth Example</h1>
+
+  <h2>Last 10 visits</h2>
+  {% for time in times %}
+    <p>{{ time }}</p>
+  {% endfor %}
+
+</body>
